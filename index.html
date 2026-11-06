@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calorie Balance 1.3 — Warm Minimal</title>
+</head>
+<body style="margin:0;padding:12px;background:#ede8df">
+<div id="cal13">
+<style>
+#cal13{--cream:#faf7f1;--paper:#fffdf9;--ink:#30291f;--muted:#8c8176;--terra:#b86d50;--line:#eae2d8;--sand:#efe8dc;font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:var(--ink);background:#ede8df;padding:11px 5px;border-radius:19px;font-size:14px}
+#cal13 *{box-sizing:border-box}
+#cal13 button,#cal13 input,#cal13 select{font:inherit}
+#cal13 button{cursor:pointer}
+#cal13 .app{max-width:470px;margin:auto;background:var(--paper);border:1px solid #e5dbce;overflow:hidden;border-radius:22px;box-shadow:0 15px 40px #49372218}
+#cal13 .header{padding:25px 23px 23px;background:var(--cream);border-bottom:1px solid var(--line)}
+#cal13 .brand{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;letter-spacing:2.2px;font-weight:850}
+#cal13 .mark{display:inline-flex;align-items:center;justify-content:center;width:29px;height:29px;border:1px solid var(--terra);border-radius:50%;color:var(--terra);font-family:Georgia,serif;font-size:22px;letter-spacing:0}
+#cal13 h2{font-family:Georgia,'Times New Roman',serif;font-size:34px;font-weight:400;line-height:1.1;letter-spacing:-1.2px;margin:23px 0 9px}
+#cal13 h3{font-family:Georgia,'Times New Roman',serif;font-size:23px;line-height:1.18;font-weight:400;margin:0 0 15px}
+#cal13 .tiny{font-size:11px;line-height:1.55;color:var(--muted)}
+#cal13 .body{padding:22px 22px 27px;min-height:420px}
+#cal13 .eyebrow{font-size:10px;letter-spacing:1.7px;font-weight:800;text-transform:uppercase;color:#9e7e6d;margin:12px 0 15px}
+#cal13 .two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 13px}
+#cal13 label.field{display:block;font-size:12px;font-weight:650;margin-bottom:15px;color:#62574f}
+#cal13 input,#cal13 select{width:100%;min-width:0;border-radius:8px;border:1px solid #e0d6c9;background:#fffdf9;padding:10px 11px;min-height:43px;outline-color:#b86d50;color:var(--ink);margin-top:6px}
+#cal13 .pickrow{display:flex;gap:8px;margin:8px 0 15px}
+#cal13 .pick{flex:1;border:1px solid var(--line);background:transparent;color:var(--ink);padding:10px 6px;border-radius:8px}
+#cal13 .pick.active{border-color:var(--terra);background:#f7eee7;color:#9f5038}
+#cal13 .goal{display:flex;gap:12px;align-items:center;text-align:left;padding:13px 12px;width:100%;border:1px solid var(--line);border-radius:10px;margin:0 0 9px;background:#fffdf9;color:var(--ink)}
+#cal13 .goal.active{border-color:#b86d50;background:#fbf1eb}
+#cal13 .goal .circle{width:20px;height:20px;flex:none;border:1px solid #c9b9ab;border-radius:50%;display:grid;place-items:center}
+#cal13 .goal.active .circle{border-color:var(--terra);background:var(--terra);color:white}
+#cal13 .goal strong{font-size:13px;font-weight:700;display:block}
+#cal13 .goal small{font-size:11px;color:var(--muted)}
+#cal13 .btn{border:0;border-radius:9px;background:var(--ink);color:white;min-height:45px;padding:12px 15px;font-weight:700;font-size:12px;letter-spacing:.2px}
+#cal13 .btn.terra{background:var(--terra)}
+#cal13 .btn.outline{background:transparent;border:1px solid #d2c6bb;color:var(--ink)}
+#cal13 .btn:disabled{background:#ddd3c7;color:#93897f;cursor:not-allowed}
+#cal13 .full{width:100%}
+#cal13 .panel{border:1px solid var(--line);padding:17px;border-radius:12px;margin-bottom:15px}
+#cal13 .tinted{background:#f5eee5;border-color:#f0e4d6}
+#cal13 .row{display:flex;align-items:center;justify-content:space-between;gap:9px}
+#cal13 .divider{border:0;border-top:1px solid var(--line);margin:14px 0}
+#cal13 .big{font-family:Georgia,serif;font-size:48px;line-height:1.12;letter-spacing:-2px}
+#cal13 .terra-text{color:#a95c40}
+#cal13 .note{font-size:12px;line-height:1.65;padding:13px 15px;border-left:3px solid #bf866b;background:#f9f2eb;margin:14px 0}
+#cal13 .note.warn{background:#fbf0e4;border-color:#bb7847}
+#cal13 .metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;text-align:center;margin:16px 0}
+#cal13 .metrics b{display:block;font-family:Georgia,serif;font-size:clamp(19px,5vw,27px);font-weight:400;letter-spacing:-.6px}
+#cal13 .metrics small{font-size:10px;color:var(--muted)}
+#cal13 .track{height:7px;background:#e8ded1;border-radius:10px;overflow:hidden}
+#cal13 .track>div{height:100%;background:var(--terra);transition:width .2s}
+#cal13 .meal{padding:14px 0;border-bottom:1px solid var(--line)}
+#cal13 .meal:last-child{border-bottom:0}
+#cal13 .foodrow{display:flex;gap:9px;align-items:center;padding:9px 0;border-top:1px solid #f2ece6;font-size:12px}
+#cal13 .foodrow .name{flex:1;min-width:0;overflow-wrap:anywhere}
+#cal13 .foodrow .kill{border:0;background:transparent;color:#af6c57;font-size:19px;padding:0 4px}
+#cal13 .upload{background:#f7f2eb;border:1px dashed #cbbbaf;border-radius:12px;min-height:225px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px;gap:10px;overflow:hidden}
+#cal13 .upload img{max-width:100%;max-height:305px;object-fit:contain;border-radius:8px}
+#cal13 .upload .camera{font-size:33px;line-height:1}
+#cal13 .chart{height:155px;border-bottom:1px solid #ddd2c5;display:flex;align-items:end;justify-content:space-around;gap:10px;margin-top:18px}
+#cal13 .chartcol{flex:1;height:100%;display:flex;align-items:end;justify-content:center}
+#cal13 .bar{max-width:28px;width:76%;background:#bd876e;border-radius:4px 4px 0 0;min-height:3px}
+#cal13 .chartlabels{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:10px;color:var(--muted);margin-top:9px}
+#cal13 .nav{display:grid;grid-template-columns:repeat(4,1fr);padding:11px 3px 13px;background:var(--cream);border-top:1px solid var(--line)}
+#cal13 .nav button{border:0;background:none;color:#9b8e82;font-size:10px;display:flex;flex-direction:column;align-items:center;gap:3px}
+#cal13 .nav button.active{color:#9d583e;font-weight:800}
+#cal13 .nav button .symbol{font-size:19px;line-height:1.3}
+#cal13 .overlay{position:fixed;inset:0;background:#221a1599;display:flex;justify-content:center;align-items:center;padding:15px;z-index:9999}
+#cal13 .dialog{background:var(--paper);color:var(--ink);width:100%;max-width:420px;border-radius:15px;max-height:90vh;overflow:auto;padding:23px}
+#cal13 .mini{font-size:11px;color:var(--muted)}
+#cal13 .reference{font-size:12px;background:#f5eee5;border:1px solid #e8d9c8;padding:10px;border-radius:8px;line-height:1.5;margin:12px 0}
+</style>
+<div class="app">
+<header class="header">
+<div class="brand"><span style="display:flex;align-items:center;gap:9px"><span class="mark">c</span> CALORIE BALANCE</span><span style="color:#a88c7c;font-size:9px;letter-spacing:1px">WELLNESS JOURNAL</span></div>
+<h2 id="cal13-title">Твой баланс.</h2>
+<div id="cal13-sub" class="tiny">Осознанное питание начинается с понимания себя.</div>
+</header>
+<main id="cal13-body" class="body"></main>
+<nav class="nav">
+<button data-page="profile" class="active"><span class="symbol">◯</span>Профиль</button>
+<button data-page="diary"><span class="symbol">☷</span>Питание</button>
+<button data-page="photo"><span class="symbol">▣</span>Фото</button>
+<button data-page="progress"><span class="symbol">▥</span>Прогресс</button>
+</nav>
+</div>
+<input type="file" accept="image/*" id="cal13-gallery" hidden>
+<input type="file" accept="image/*" capture="environment" id="cal13-camera" hidden>
+<div id="cal13-modal"></div>
+<script>
+(function(){
+const root=document.getElementById('cal13');if(!root||root.dataset.ready)return;root.dataset.ready='1';
+const $=s=>root.querySelector(s), $$=s=>Array.from(root.querySelectorAll(s));
+const storage='calorie_balance_warm_13';
+const day=(dt=new Date())=>dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+const defaults={sex:'female',age:'',height:'',weight:'',activity:'1.375',goal:'maintain',goalKg:5,calculated:false,verified:false,maintenance:2000,target:2000,foods:[],weights:[],entries:[]};
+let state={...defaults};
+try{const saved=JSON.parse(localStorage.getItem(storage)||'null');if(saved&&typeof saved==='object'){state={...defaults,...saved};['foods','weights'].forEach(k=>{if(!Array.isArray(state[k]))state[k]=[]})}}catch(e){}
+let page='profile',editing=!state.calculated,picture=null,photoUrl=null,selectedDay=day();
+const fmt=x=>Math.round(x).toLocaleString('ru-RU');
+const html=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function save(){try{localStorage.setItem(storage,JSON.stringify(state))}catch(e){}}
+const meals=[['breakfast','Завтрак'],['lunch','Обед'],['dinner','Ужин'],['snack','Перекус']];
+const goalTitles={maintain:'Поддержание веса',lose:'Постепенное снижение веса',gain:'Постепенный набор веса'};
+const consumed=(d=selectedDay)=>state.foods.filter(f=>f.day===d).reduce((s,f)=>s+f.kcal,0);
+const bmi=(w,h)=>w/Math.pow(h/100,2);
+function advice(){
+const current=bmi(+state.weight,+state.height);
+const desired=+state.weight+(state.goal==='lose'?-state.goalKg:state.goal==='gain'?+state.goalKg:0);
+const finalBmi=bmi(desired,+state.height);
+let category=current<18.5?'Ниже стандартного диапазона':current<25?'В стандартном диапазоне':current<30?'Выше стандартного диапазона':'Значительно выше стандартного диапазона';
+let text=current>=18.5&&current<25?'Твой ИМТ находится в стандартном диапазоне для взрослых. Изменять вес ради цифры необязательно.':'ИМТ — ориентир, который сам по себе не определяет состояние здоровья.';
+let caution=+state.age<20;
+if(caution) text='Для возраста 18–19 лет необходима оценка с учётом возраста, стандартная взрослая интерпретация ИМТ здесь не подходит.';
+else if(state.goal==='lose'&&(current<18.5||finalBmi<18.5)){caution=true;text+=' Выбранная цель может привести к недостаточной массе тела. Лучше обсудить её со специалистом.'}
+else if(state.goal==='gain'&&finalBmi>=30){caution=true;text+=' Желаемая прибавка веса требует индивидуальной оценки.'}
+else if(state.goal==='maintain'){text+=' Можно сосредоточиться на регулярном питании и хорошем самочувствии.'}
+else text+=' Выбранную цель можно отслеживать без жёстких ограничений.';
+return {current,desired,finalBmi,category,text,caution}
+}
+function profileForm(){
+return `<form id="cal13-profile"><div class="eyebrow">01 / Основные данные</div><label class="field">Пол для расчёта</label><div class="pickrow"><button type="button" data-sex="female" class="pick ${state.sex==='female'?'active':''}">Женский</button><button type="button" data-sex="male" class="pick ${state.sex==='male'?'active':''}">Мужской</button></div><div class="two">
+<label class="field">Возраст<input name="age" type="number" min="18" max="100" required value="${html(state.age)}" placeholder="35"></label>
+<label class="field">Рост, см<input name="height" type="number" min="100" max="230" required value="${html(state.height)}" placeholder="165"></label>
+<label class="field">Вес, кг<input name="weight" type="number" min="30" max="300" step=".1" required value="${html(state.weight)}" placeholder="65"></label>
+<label class="field">Активность<select name="activity">${[['1.2','Низкая'],['1.375','Лёгкая'],['1.55','Умеренная'],['1.725','Высокая']].map(([v,t])=>`<option value="${v}" ${String(state.activity)===v?'selected':''}>${t}</option>`).join('')}</select></label>
+</div><div class="eyebrow">02 / Твоя цель</div>
+${[['maintain','Сохранять вес','Без изменений'],['lose','Постепенно похудеть','Без экстремальных диет'],['gain','Постепенно набрать вес','Бережно к организму']].map(([v,t,d])=>`<button type="button" class="goal ${state.goal===v?'active':''}" data-goal="${v}"><span class="circle">${state.goal===v?'✓':''}</span><span><strong>${t}</strong><small>${d}</small></span></button>`).join('')}
+${state.goal!=='maintain'?`<label class="field" style="margin-top:16px">На сколько килограммов?<input name="goalKg" type="number" min=".1" max="100" step=".1" required value="${html(state.goalKg)}"></label>`:''}
+<button class="btn terra full" style="margin-top:10px" type="submit">Рассчитать мою цель</button><p class="tiny" style="margin-top:13px">Расчёт приблизительный и предназначен для взрослых. ИМТ не является медицинским диагнозом.</p></form>`;
+}
+function profile(){
+if(!state.calculated||editing)return profileForm();
+const a=advice();
+return `<div class="eyebrow">Твой дневной ориентир</div><div class="panel tinted"><div class="big terra-text">${fmt(state.target)} <span style="font:13px Inter,system-ui,sans-serif;letter-spacing:0">ккал / день</span></div><div class="tiny" style="margin-top:7px">${state.verified?goalTitles[state.goal]:'Ориентир для поддержания веса; индивидуальная проверка цели необходима'}</div></div>
+<div class="panel"><div class="eyebrow" style="margin-top:0">Оценка здоровой цели</div><div class="row"><span class="tiny">Текущий вес</span><strong>${html(state.weight)} кг</strong></div><hr class="divider"><div class="row"><span class="tiny">Желаемый вес</span><strong>${a.desired.toFixed(1)} кг</strong></div><hr class="divider"><div class="row"><span class="tiny">Индекс массы тела</span><strong>${a.current.toFixed(1)}</strong></div><div class="note ${a.caution?'warn':''}"><strong>${+state.age<20?'Нужен индивидуальный подход':a.category}</strong><div style="margin-top:6px">${a.text}</div></div></div>
+<button class="btn outline full" data-action="edit">Изменить данные</button><button class="btn full" data-page="diary" style="margin-top:10px">Перейти к дневнику →</button><p class="tiny" style="margin-top:15px">При беременности, кормлении грудью, хронических заболеваниях или особенностях пищевого поведения необходима консультация специалиста.</p>`;
+}
+function summary(){
+const n=consumed(),difference=state.target-n,p=state.target>0?Math.round(n/state.target*100):0;
+return `<div class="panel tinted"><div class="row"><span class="eyebrow" style="margin:0">Дневной баланс</span><span class="tiny">${new Date(selectedDay+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long'})}</span></div><div class="metrics"><div><b>${fmt(n)}</b><small>Записано</small></div><div><b>${fmt(difference)}</b><small>Разница</small></div><div><b>${fmt(state.target)}</b><small>Ориентир</small></div></div><div class="track"><div style="width:${Math.max(0,Math.min(100,p))}%"></div></div><div class="tiny" style="text-align:right;margin-top:7px">${p}% дневного ориентира</div></div>`
+}
+function diary(){
+return `<div class="row" style="margin-bottom:14px"><label class="field" style="margin:0;max-width:180px">Дата<input type="date" id="cal13-date" value="${selectedDay}"></label><button class="btn outline" data-action="addfood">＋ Добавить</button></div>${summary()}<h3>Дневник питания</h3>
+${meals.map(([id,t])=>{const entries=state.foods.filter(f=>f.day===selectedDay&&f.meal===id);return `<div class="meal"><div class="row" style="margin-bottom:9px"><strong>${t}</strong><span class="tiny">${fmt(entries.reduce((s,f)=>s+f.kcal,0))} ккал</span></div>${entries.length?entries.map(f=>`<div class="foodrow"><span class="name">${html(f.name)}${f.grams?`<span class="tiny" style="display:block">${f.grams} г</span>`:''}</span><strong>${fmt(f.kcal)} ккал</strong><button class="kill" data-remove="${f.id}" aria-label="Удалить">×</button></div>`).join(''):'<div class="tiny">Пока нет записей</div>'}</div>`}).join('')}
+<button class="btn terra full" data-page="photo" style="margin-top:16px">Добавить через фото →</button><div class="tiny" style="margin-top:13px">Пока данные о калориях вводятся вручную или рассчитываются по справочным значениям продуктов.</div>`;
+}
+function photo(){
+return `<div class="eyebrow">Фотография блюда</div><div class="upload">${photoUrl?`<img src="${photoUrl}" alt="Выбранное блюдо"><span class="tiny">Фотография готова к анализу</span>`:'<div class="camera">▣</div><h3 style="font-size:22px;margin:0">Что сегодня на тарелке?</h3><span class="tiny">Сфотографируй блюдо при хорошем освещении.</span>'}</div><div class="pickrow" style="margin-top:16px"><button class="btn terra" style="flex:1" data-action="camera">Камера</button><button class="btn outline" style="flex:1" data-action="gallery">Галерея</button></div><button class="btn full" disabled>Определить калории с ИИ</button><div class="note">Фото можно загрузить и посмотреть. Настоящий ИИ-анализ пока не подключён: приложение не выдаёт вымышленные результаты.</div><button class="btn outline full" data-page="diary">Добавить блюдо вручную →</button>`;
+}
+function progress(){
+const days=Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()-6+i);return{date:day(d),label:d.toLocaleDateString('ru-RU',{weekday:'short'}),val:consumed(day(d))}});
+const max=Math.max(state.target,1,...days.map(x=>x.val));
+const lastWeight=state.weights.length?state.weights[state.weights.length-1].weight:state.weight;
+const target=+state.weight+(state.goal==='lose'?-Number(state.goalKg):state.goal==='gain'?Number(state.goalKg):0);
+return `<div class="eyebrow">Твоя динамика</div><div class="panel tinted"><div class="row"><div><div class="tiny">Последний записанный вес</div><div class="big" style="font-size:38px">${lastWeight||'—'} <span style="font:13px Inter,system-ui,sans-serif">кг</span></div></div><div style="text-align:right"><div class="tiny">Цель</div><strong>${state.calculated?target.toFixed(1)+' кг':'Не задана'}</strong></div></div><button class="btn outline full" style="margin-top:17px" data-action="addweight">＋ Записать вес</button></div><div class="panel"><h3>Последние 7 дней</h3><div class="chart">${days.map(d=>`<div class="chartcol"><div class="bar" title="${fmt(d.val)} ккал" style="height:${Math.max(2,d.val/max*100)}%"></div></div>`).join('')}</div><div class="chartlabels">${days.map(d=>`<span>${d.label}</span>`).join('')}</div><div class="tiny" style="margin-top:17px">График показывает записанные калории. Пустые дни не означают отсутствие питания.</div></div><div class="panel"><h3>История веса</h3>${state.weights.length?state.weights.slice(-6).reverse().map(x=>`<div class="row" style="padding:9px 0;border-bottom:1px solid var(--line)"><span class="tiny">${html(x.day)}</span><strong>${x.weight} кг</strong></div>`).join(''):'<div class="tiny">Пока нет записей</div>'}</div><button class="btn outline full" data-action="export">Сохранить мои данные</button>`;
+}
+const pageTitles={profile:['Твой баланс.','Осознанное питание начинается с понимания себя.'],diary:['Твоё питание.','Маленькие привычки, большие изменения.'],photo:['Еда в фокусе.','Фотографируй, изучай, выбирай осознанно.'],progress:['Твой путь.','Смотри на динамику, а не на одну цифру.']};
+function render(){const p=pageTitles[page];$('#cal13-title').textContent=p[0];$('#cal13-sub').textContent=p[1];$('#cal13-body').innerHTML=({profile,diary,photo,progress})[page]();$$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page))}
+function go(p){page=p;render()}
+function rememberForm(){const f=$('#cal13-profile');if(!f)return;const data=new FormData(f);for(const k of ['age','height','weight','activity','goalKg'])if(data.has(k))state[k]=data.get(k)}
+function dialog(html){$('#cal13-modal').innerHTML=`<div class="overlay"><div class="dialog">${html}</div></div>`}
+function close(){$('#cal13-modal').innerHTML=''}
+root.addEventListener('click',e=>{
+const b=e.target.closest('button');if(!b)return;
+if(b.dataset.page){go(b.dataset.page);return}
+if(b.dataset.sex||b.dataset.goal){rememberForm();if(b.dataset.sex)state.sex=b.dataset.sex;if(b.dataset.goal)state.goal=b.dataset.goal;render();return}
+if(b.dataset.action==='edit'){editing=true;render();return}
+if(b.dataset.action==='gallery'){$('#cal13-gallery').click();return}
+if(b.dataset.action==='camera'){$('#cal13-camera').click();return}
+if(b.dataset.action==='close'){close();return}
+if(b.dataset.action==='export'){const blob=new Blob([JSON.stringify({exportedAt:new Date().toISOString(),...state},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='calorie-balance-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return}
+if(b.dataset.remove){state.foods=state.foods.filter(x=>String(x.id)!==b.dataset.remove);save();render();return}
+if(b.dataset.action==='addweight'){dialog(`<h3>Записать вес</h3><form id="cal13-weightform"><label class="field">Вес, кг<input name="w" type="number" min="30" max="300" step=".1" required value="${html(state.weight)}"></label><div class="pickrow"><button type="button" class="btn outline" data-action="close">Отмена</button><button type="submit" class="btn terra">Сохранить</button></div></form>`);return}
+if(b.dataset.action==='addfood'){dialog(`<h3>Добавить блюдо</h3><form id="cal13-foodform"><label class="field">Приём пищи<select name="meal">${meals.map(([id,t])=>`<option value="${id}">${t}</option>`).join('')}</select></label><label class="field">Название блюда<input name="name" placeholder="Например, рис с овощами" maxlength="100" required></label><label class="field">Калорийность порции, ккал<input name="kcal" type="number" min="1" max="10000" step="1" placeholder="Например, 350" required></label><div class="tiny">Вводи проверенную калорийность порции. В дальнейшем ИИ будет предлагать оценку автоматически.</div><div class="pickrow" style="margin-top:20px"><button type="button" class="btn outline" data-action="close">Отмена</button><button class="btn terra" type="submit">Сохранить</button></div></form>`);return}
+});
+root.addEventListener('change',e=>{if(e.target.id==='cal13-date'){selectedDay=e.target.value;render()}});
+root.addEventListener('submit',e=>{
+if(e.target.id==='cal13-profile'){
+e.preventDefault();const f=new FormData(e.target);
+const age=Number(f.get('age')),h=Number(f.get('height')),w=Number(f.get('weight')),a=Number(f.get('activity')),kg=state.goal==='maintain'?0:Number(f.get('goalKg'));
+if(!(age>=18&&age<=100&&h>=100&&h<=230&&w>=30&&w<=300&&kg>=0&&kg<=100))return;
+Object.assign(state,{age,height:h,weight:w,activity:String(a),goalKg:kg});
+const assess=advice(),maintain=Math.round((10*w+6.25*h-5*age+(state.sex==='male'?5:-161))*a/10)*10,proposed=maintain+(state.goal==='lose'?-300:state.goal==='gain'?250:0);
+state.verified=!assess.caution&&proposed>=1200&&(state.sex!=='male'||proposed>=1500);state.maintenance=maintain;state.target=state.verified?proposed:maintain;state.calculated=true;
+if(!state.weights.length)state.weights.push({day:day(),weight:w});
+editing=false;save();render();return;
+}
+if(e.target.id==='cal13-foodform'){
+e.preventDefault();const f=new FormData(e.target),name=String(f.get('name')||'').trim(),kcal=Number(f.get('kcal'));
+if(!name||!Number.isFinite(kcal)||kcal<=0||kcal>10000)return;
+state.foods.push({id:Date.now()+Math.random(),day:selectedDay,meal:String(f.get('meal')),name,kcal});save();close();render();return;
+}
+if(e.target.id==='cal13-weightform'){
+e.preventDefault();const w=Number(new FormData(e.target).get('w'));if(!Number.isFinite(w)||w<30||w>300)return;
+state.weights.push({day:day(),weight:w});save();close();render();return;
+}
+});
+function upload(input){const file=input.files?.[0];if(!file)return;if(!file.type.startsWith('image/'))return;if(photoUrl)URL.revokeObjectURL(photoUrl);photoUrl=URL.createObjectURL(file);input.value='';go('photo')}
+$('#cal13-gallery').addEventListener('change',e=>upload(e.target));
+$('#cal13-camera').addEventListener('change',e=>upload(e.target));
+render();
+})();
+</script>
+</div>
+</body>
+</html>
