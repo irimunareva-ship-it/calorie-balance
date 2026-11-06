@@ -59,7 +59,7 @@
 #cal13 .upload{background:#f7f2eb;border:1px dashed #cbbbaf;border-radius:12px;min-height:225px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:18px;gap:10px;overflow:hidden}
 #cal13 .upload img{max-width:100%;max-height:305px;object-fit:contain;border-radius:8px}
 #cal13 .upload .camera{font-size:33px;line-height:1}
-#cal13 .chart{height:155px;border-bottom:1px solid #ddd2c5;display:flex;align-items:end;justify-content:space-around;gap:10px;margin-top:18px}
+#cal13 .chart{background:repeating-linear-gradient(to top,transparent 0,transparent 37px,#eae2d866 38px,#eae2d866 39px);height:155px;border-bottom:1px solid #ddd2c5;display:flex;align-items:end;justify-content:space-around;gap:10px;margin-top:18px}
 #cal13 .chartcol{flex:1;height:100%;display:flex;align-items:end;justify-content:center}
 #cal13 .bar{max-width:28px;width:76%;background:#bd876e;border-radius:4px 4px 0 0;min-height:3px}
 #cal13 .chartlabels{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:10px;color:var(--muted);margin-top:9px}
@@ -82,12 +82,12 @@
 <nav class="nav">
 <button data-page="profile" class="active"><span class="symbol">◯</span>Профиль</button>
 <button data-page="diary"><span class="symbol">☷</span>Питание</button>
-<button data-page="photo"><span class="symbol">▣</span>Фото</button>
+<button data-page="photo"><span class="symbol">◎</span>Фото</button>
 <button data-page="progress"><span class="symbol">▥</span>Прогресс</button>
 </nav>
 </div>
-<input type="file" accept="image/*" id="cal13-gallery" hidden>
-<input type="file" accept="image/*" capture="environment" id="cal13-camera" hidden>
+<input type="file" accept="image/jpeg,image/png,image/webp" id="cal13-gallery" hidden>
+<input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" id="cal13-camera" hidden>
 <div id="cal13-modal"></div>
 <script>
 (function(){
@@ -97,8 +97,11 @@ const storage='calorie_balance_warm_13';
 const day=(dt=new Date())=>dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
 const defaults={sex:'female',age:'',height:'',weight:'',activity:'1.375',goal:'maintain',goalKg:5,calculated:false,verified:false,maintenance:2000,target:2000,foods:[],weights:[],entries:[]};
 let state={...defaults};
-try{const saved=JSON.parse(localStorage.getItem(storage)||'null');if(saved&&typeof saved==='object'){state={...defaults,...saved};['foods','weights'].forEach(k=>{if(!Array.isArray(state[k]))state[k]=[]})}}catch(e){}
+try{const saved=JSON.parse(localStorage.getItem(storage)||'null');if(saved&&typeof saved==='object'){state={...defaults,...saved};['foods','weights','entries'].forEach(k=>{if(!Array.isArray(state[k]))state[k]=[]})}}catch(e){}
 let page='profile',editing=!state.calculated,picture=null,photoUrl=null,selectedDay=day();
+const AI_ENDPOINT='https://calorie-balance-ai.estetica-nocedicocco.workers.dev/';
+// Access code is entered by the owner and kept only in this tab's memory.
+let accessCode='',aiBusy=false,aiError='',aiResult=null,photoVersion=0;
 const fmt=x=>Math.round(x).toLocaleString('ru-RU');
 const html=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function save(){try{localStorage.setItem(storage,JSON.stringify(state))}catch(e){}}
@@ -145,17 +148,41 @@ return `<div class="panel tinted"><div class="row"><span class="eyebrow" style="
 function diary(){
 return `<div class="row" style="margin-bottom:14px"><label class="field" style="margin:0;max-width:180px">Дата<input type="date" id="cal13-date" value="${selectedDay}"></label><button class="btn outline" data-action="addfood">＋ Добавить</button></div>${summary()}<h3>Дневник питания</h3>
 ${meals.map(([id,t])=>{const entries=state.foods.filter(f=>f.day===selectedDay&&f.meal===id);return `<div class="meal"><div class="row" style="margin-bottom:9px"><strong>${t}</strong><span class="tiny">${fmt(entries.reduce((s,f)=>s+f.kcal,0))} ккал</span></div>${entries.length?entries.map(f=>`<div class="foodrow"><span class="name">${html(f.name)}${f.grams?`<span class="tiny" style="display:block">${f.grams} г</span>`:''}</span><strong>${fmt(f.kcal)} ккал</strong><button class="kill" data-remove="${f.id}" aria-label="Удалить">×</button></div>`).join(''):'<div class="tiny">Пока нет записей</div>'}</div>`}).join('')}
-<button class="btn terra full" data-page="photo" style="margin-top:16px">Добавить через фото →</button><div class="tiny" style="margin-top:13px">Пока данные о калориях вводятся вручную или рассчитываются по справочным значениям продуктов.</div>`;
+<button class="btn terra full" data-page="photo" style="margin-top:16px">Добавить через фото →</button><div class="tiny" style="margin-top:13px">Записывай калории вручную или добавляй проверенную оценку по фотографии.</div>`;
 }
+function plateArt(){return `<svg viewBox="0 0 240 150" width="240" height="150" aria-hidden="true"><ellipse cx="120" cy="130" rx="75" ry="9" fill="#e9dfd2"/><circle cx="120" cy="73" r="60" fill="#fffdf9" stroke="#d9c8b8" stroke-width="2"/><circle cx="120" cy="73" r="47" fill="#f4ede2" stroke="#e4d7c9"/><path d="M88 57q22-27 44 1q-6 24-28 24q-23-3-16-25" fill="#859574"/><path d="M111 86q22-24 43-9q6 28-24 27q-16 0-19-18" fill="#c88768"/><ellipse cx="143" cy="53" rx="17" ry="12" fill="#d4b77f"/><circle cx="97" cy="94" r="9" fill="#b86d50"/><path d="M35 32v79m-7-79v22q7 13 14 0V32m163 0q-13 20-5 41h5v38" fill="none" stroke="#bba18a" stroke-width="3" stroke-linecap="round"/></svg>`;}
 function photo(){
-return `<div class="eyebrow">Фотография блюда</div><div class="upload">${photoUrl?`<img src="${photoUrl}" alt="Выбранное блюдо"><span class="tiny">Фотография готова к анализу</span>`:'<div class="camera">▣</div><h3 style="font-size:22px;margin:0">Что сегодня на тарелке?</h3><span class="tiny">Сфотографируй блюдо при хорошем освещении.</span>'}</div><div class="pickrow" style="margin-top:16px"><button class="btn terra" style="flex:1" data-action="camera">Камера</button><button class="btn outline" style="flex:1" data-action="gallery">Галерея</button></div><button class="btn full" disabled>Определить калории с ИИ</button><div class="note">Фото можно загрузить и посмотреть. Настоящий ИИ-анализ пока не подключён: приложение не выдаёт вымышленные результаты.</div><button class="btn outline full" data-page="diary">Добавить блюдо вручную →</button>`;
+return `<div class="eyebrow">Фотография блюда</div><div class="upload">${photoUrl?`<img src="${photoUrl}" alt="Выбранное блюдо"><span class="tiny">Фотография готова к анализу</span>`:plateArt()+'<h3 style="font-size:22px;margin:0">Что сегодня на тарелке?</h3><span class="tiny">Сфотографируй блюдо при хорошем освещении.</span>'}</div><div class="pickrow" style="margin-top:16px"><button class="btn terra" style="flex:1" data-action="camera" ${aiBusy?'disabled':''}>Камера</button><button class="btn outline" style="flex:1" data-action="gallery" ${aiBusy?'disabled':''}>Галерея</button></div><button class="btn full" data-action="analyze" ${!picture||aiBusy?'disabled':''}>${aiBusy?'Анализируем фотографию…':'Определить калории с ИИ'}</button><div role="status" aria-live="polite">${aiError?`<div class="note warn">${html(aiError)}</div>`:''}</div>${aiResult?`<div class="panel" style="margin-top:16px"><div class="eyebrow">Приблизительная оценка</div><h3>${html(aiResult.name)}</h3><div class="big terra-text" style="font-size:34px">≈ ${fmt(aiResult.kcal)} <span style="font:13px system-ui">ккал</span></div><p class="tiny">Порция ≈ ${fmt(aiResult.grams)} г · Уверенность: ${{low:'низкая',medium:'средняя',high:'высокая'}[aiResult.confidence]}</p><p class="tiny">${html(aiResult.items.join(', '))}</p><p class="tiny">${html(aiResult.summary)}</p><button class="btn terra full" data-action="review-ai">Проверить и добавить в дневник</button></div>`:''}<div class="note">Фото будет отправлено в Cloudflare и OpenAI только после нажатия кнопки анализа. Вес и калории по фотографии приблизительны: проверь порцию перед сохранением.</div><button class="btn outline full" data-action="addfood">Добавить блюдо вручную →</button>${accessCode?'<button class="btn outline full" style="margin-top:10px" data-action="forget-code">Забыть код доступа</button>':''}`;
+}
+function reviewAI(){if(!aiResult)return;dialog(`<h3>Проверь оценку</h3><form id="cal13-aiform"><label class="field">Дата<input name="day" type="date" value="${selectedDay}" required></label><label class="field">Приём пищи<select name="meal">${meals.map(([id,t])=>`<option value="${id}" ${id===aiResult.meal_guess?'selected':''}>${t}</option>`).join('')}</select></label><label class="field">Блюдо<input name="name" maxlength="100" required value="${html(aiResult.name)}"></label><label class="field">Вес всей порции, г<input name="grams" type="number" min="1" max="10000" required value="${aiResult.grams}"></label><label class="field">Калории всей порции, ккал<input name="kcal" type="number" min="1" max="10000" required value="${aiResult.kcal}"></label><p class="tiny">Можно исправить обе оценки. Изменение граммов не пересчитывает калории автоматически.</p><div class="pickrow"><button type="button" class="btn outline" data-action="close">Отмена</button><button class="btn terra" type="submit">Сохранить</button></div></form>`);}
+async function analyzePhoto(){
+if(aiBusy||!picture)return;
+if(!accessCode){dialog(`<h3>Доступ к анализу</h3><form id="cal13-access"><label class="field">Личный код доступа<input name="code" type="password" autocomplete="off" minlength="32" maxlength="200" required></label><p class="tiny">Это отдельный код приложения, не ключ OpenAI. Он хранится только до закрытия или обновления этой вкладки.</p><div class="pickrow"><button type="button" class="btn outline" data-action="close">Отмена</button><button class="btn terra" type="submit">Продолжить</button></div></form>`);return;}
+const version=photoVersion,file=picture;aiBusy=true;aiError='';aiResult=null;render();
+try{
+ const form=new FormData();form.append('photo',file,'meal.jpg');
+ const response=await fetch(AI_ENDPOINT,{method:'POST',headers:{Authorization:'Bearer '+accessCode},body:form,signal:AbortSignal.timeout(45000),credentials:'omit',redirect:'error'});
+ let data;try{data=await response.json();}catch{throw new Error('Сервис вернул нечитаемый ответ. Попробуй позже.');}
+ if(!response.ok){if(response.status===401)accessCode='';throw new Error(typeof data.error==='string'?data.error:'Не удалось выполнить анализ.');}
+ if(version!==photoVersion)return;
+ if(data.is_food===false)throw new Error('Не удалось уверенно распознать еду. Попробуй другое фото.');
+ if(data.is_food!==true||typeof data.name!=='string'||!Number.isFinite(data.kcal)||data.kcal<=0||data.kcal>10000||!Number.isFinite(data.grams)||data.grams<=0||data.grams>10000||!meals.some(([id])=>id===data.meal_guess)||!['low','medium','high'].includes(data.confidence)||!Array.isArray(data.items)||!data.items.every(x=>typeof x==='string')||typeof data.summary!=='string')throw new Error('Оценка блюда неполная. Попробуй другое фото.');
+ aiResult=data;
+}catch(e){aiError=e.name==='TimeoutError'?'Анализ занял слишком много времени. Повторный запрос может расходовать лимит.':e instanceof TypeError?'Нет связи с защищённым сервисом. Проверь интернет и настройку доступа.':e.message;}
+finally{aiBusy=false;render();}
+}
+function weightGraphic(){
+const points=state.weights.slice(-14);if(points.length<2)return '';
+const values=points.map(x=>Number(x.weight)),lo=Math.min(...values)-.5,hi=Math.max(...values)+.5;
+const coords=values.map((v,i)=>[18+i*284/(values.length-1),100-(v-lo)/(hi-lo)*76]);
+return `<svg viewBox="0 0 320 125" role="img" aria-label="Изменение записанного веса от ${html(values[0])} до ${html(values.at(-1))} килограммов" style="width:100%;margin-bottom:16px"><path d="M18 100H302M18 62H302M18 24H302" stroke="#eae2d8" fill="none"/><path d="M${coords.map(p=>p.join(',')).join(' L')}" stroke="#b86d50" stroke-width="2.5" fill="none" stroke-linejoin="round"/>${coords.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3.5" fill="#b86d50"/>`).join('')}<text x="18" y="120" font-size="10" fill="#8c8176">${html(points[0].day)}</text><text x="302" y="120" text-anchor="end" font-size="10" fill="#8c8176">${html(points.at(-1).day)}</text></svg>`;
 }
 function progress(){
 const days=Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()-6+i);return{date:day(d),label:d.toLocaleDateString('ru-RU',{weekday:'short'}),val:consumed(day(d))}});
 const max=Math.max(state.target,1,...days.map(x=>x.val));
 const lastWeight=state.weights.length?state.weights[state.weights.length-1].weight:state.weight;
 const target=+state.weight+(state.goal==='lose'?-Number(state.goalKg):state.goal==='gain'?Number(state.goalKg):0);
-return `<div class="eyebrow">Твоя динамика</div><div class="panel tinted"><div class="row"><div><div class="tiny">Последний записанный вес</div><div class="big" style="font-size:38px">${lastWeight||'—'} <span style="font:13px Inter,system-ui,sans-serif">кг</span></div></div><div style="text-align:right"><div class="tiny">Цель</div><strong>${state.calculated?target.toFixed(1)+' кг':'Не задана'}</strong></div></div><button class="btn outline full" style="margin-top:17px" data-action="addweight">＋ Записать вес</button></div><div class="panel"><h3>Последние 7 дней</h3><div class="chart">${days.map(d=>`<div class="chartcol"><div class="bar" title="${fmt(d.val)} ккал" style="height:${Math.max(2,d.val/max*100)}%"></div></div>`).join('')}</div><div class="chartlabels">${days.map(d=>`<span>${d.label}</span>`).join('')}</div><div class="tiny" style="margin-top:17px">График показывает записанные калории. Пустые дни не означают отсутствие питания.</div></div><div class="panel"><h3>История веса</h3>${state.weights.length?state.weights.slice(-6).reverse().map(x=>`<div class="row" style="padding:9px 0;border-bottom:1px solid var(--line)"><span class="tiny">${html(x.day)}</span><strong>${x.weight} кг</strong></div>`).join(''):'<div class="tiny">Пока нет записей</div>'}</div><button class="btn outline full" data-action="export">Сохранить мои данные</button>`;
+return `<div class="eyebrow">Твоя динамика</div><div class="panel tinted"><div class="row"><div><div class="tiny">Последний записанный вес</div><div class="big" style="font-size:38px">${lastWeight||'—'} <span style="font:13px Inter,system-ui,sans-serif">кг</span></div></div><div style="text-align:right"><div class="tiny">Цель</div><strong>${state.calculated?target.toFixed(1)+' кг':'Не задана'}</strong></div></div><button class="btn outline full" style="margin-top:17px" data-action="addweight">＋ Записать вес</button></div><div class="panel"><h3>Последние 7 дней</h3><div class="chart">${days.map(d=>`<div class="chartcol"><div class="bar" title="${fmt(d.val)} ккал" style="height:${Math.max(2,d.val/max*100)}%"></div></div>`).join('')}</div><div class="chartlabels">${days.map(d=>`<span>${d.label}</span>`).join('')}</div><div class="tiny" style="margin-top:17px">График показывает записанные калории. Пустые дни не означают отсутствие питания.</div></div><div class="panel"><h3>История веса</h3>${weightGraphic()}${state.weights.length?state.weights.slice(-6).reverse().map(x=>`<div class="row" style="padding:9px 0;border-bottom:1px solid var(--line)"><span class="tiny">${html(x.day)}</span><strong>${x.weight} кг</strong></div>`).join(''):'<div class="tiny">Пока нет записей</div>'}</div><button class="btn outline full" data-action="export">Сохранить мои данные</button>`;
 }
 const pageTitles={profile:['Твой баланс.','Осознанное питание начинается с понимания себя.'],diary:['Твоё питание.','Маленькие привычки, большие изменения.'],photo:['Еда в фокусе.','Фотографируй, изучай, выбирай осознанно.'],progress:['Твой путь.','Смотри на динамику, а не на одну цифру.']};
 function render(){const p=pageTitles[page];$('#cal13-title').textContent=p[0];$('#cal13-sub').textContent=p[1];$('#cal13-body').innerHTML=({profile,diary,photo,progress})[page]();$$('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===page))}
@@ -167,6 +194,9 @@ root.addEventListener('click',e=>{
 const b=e.target.closest('button');if(!b)return;
 if(b.dataset.page){go(b.dataset.page);return}
 if(b.dataset.sex||b.dataset.goal){rememberForm();if(b.dataset.sex)state.sex=b.dataset.sex;if(b.dataset.goal)state.goal=b.dataset.goal;render();return}
+if(b.dataset.action==='analyze'){analyzePhoto();return}
+if(b.dataset.action==='review-ai'){reviewAI();return}
+if(b.dataset.action==='forget-code'){accessCode='';render();return}
 if(b.dataset.action==='edit'){editing=true;render();return}
 if(b.dataset.action==='gallery'){$('#cal13-gallery').click();return}
 if(b.dataset.action==='camera'){$('#cal13-camera').click();return}
@@ -174,10 +204,17 @@ if(b.dataset.action==='close'){close();return}
 if(b.dataset.action==='export'){const blob=new Blob([JSON.stringify({exportedAt:new Date().toISOString(),...state},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='calorie-balance-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return}
 if(b.dataset.remove){state.foods=state.foods.filter(x=>String(x.id)!==b.dataset.remove);save();render();return}
 if(b.dataset.action==='addweight'){dialog(`<h3>Записать вес</h3><form id="cal13-weightform"><label class="field">Вес, кг<input name="w" type="number" min="30" max="300" step=".1" required value="${html(state.weight)}"></label><div class="pickrow"><button type="button" class="btn outline" data-action="close">Отмена</button><button type="submit" class="btn terra">Сохранить</button></div></form>`);return}
-if(b.dataset.action==='addfood'){dialog(`<h3>Добавить блюдо</h3><form id="cal13-foodform"><label class="field">Приём пищи<select name="meal">${meals.map(([id,t])=>`<option value="${id}">${t}</option>`).join('')}</select></label><label class="field">Название блюда<input name="name" placeholder="Например, рис с овощами" maxlength="100" required></label><label class="field">Калорийность порции, ккал<input name="kcal" type="number" min="1" max="10000" step="1" placeholder="Например, 350" required></label><div class="tiny">Вводи проверенную калорийность порции. В дальнейшем ИИ будет предлагать оценку автоматически.</div><div class="pickrow" style="margin-top:20px"><button type="button" class="btn outline" data-action="close">Отмена</button><button class="btn terra" type="submit">Сохранить</button></div></form>`);return}
+if(b.dataset.action==='addfood'){dialog(`<h3>Добавить блюдо</h3><form id="cal13-foodform"><label class="field">Приём пищи<select name="meal">${meals.map(([id,t])=>`<option value="${id}">${t}</option>`).join('')}</select></label><label class="field">Название блюда<input name="name" placeholder="Например, рис с овощами" maxlength="100" required></label><label class="field">Калорийность порции, ккал<input name="kcal" type="number" min="1" max="10000" step="1" placeholder="Например, 350" required></label><div class="tiny">Вводи проверенную калорийность порции. Оценку по фото можно получить на вкладке «Фото».</div><div class="pickrow" style="margin-top:20px"><button type="button" class="btn outline" data-action="close">Отмена</button><button class="btn terra" type="submit">Сохранить</button></div></form>`);return}
 });
 root.addEventListener('change',e=>{if(e.target.id==='cal13-date'){selectedDay=e.target.value;render()}});
 root.addEventListener('submit',e=>{
+if(e.target.id==='cal13-access'){e.preventDefault();accessCode=String(new FormData(e.target).get('code')||'').trim();close();analyzePhoto();return;}
+if(e.target.id==='cal13-aiform'){
+e.preventDefault();if(!aiResult)return;const f=new FormData(e.target),name=String(f.get('name')||'').trim(),kcal=Number(f.get('kcal')),grams=Number(f.get('grams')),meal=String(f.get('meal')),date=String(f.get('day'));
+if(!name||!Number.isFinite(kcal)||kcal<=0||kcal>10000||!Number.isFinite(grams)||grams<=0||grams>10000||!meals.some(([id])=>id===meal)||!/^\d{4}-\d{2}-\d{2}$/.test(date))return;
+state.foods.push({id:Date.now()+Math.random(),day:date,meal,name,kcal,grams,source:'photo-estimate'});selectedDay=date;aiResult=null;save();close();go('diary');return;
+}
+
 if(e.target.id==='cal13-profile'){
 e.preventDefault();const f=new FormData(e.target);
 const age=Number(f.get('age')),h=Number(f.get('height')),w=Number(f.get('weight')),a=Number(f.get('activity')),kg=state.goal==='maintain'?0:Number(f.get('goalKg'));
@@ -198,7 +235,20 @@ e.preventDefault();const w=Number(new FormData(e.target).get('w'));if(!Number.is
 state.weights.push({day:day(),weight:w});save();close();render();return;
 }
 });
-function upload(input){const file=input.files?.[0];if(!file)return;if(!file.type.startsWith('image/'))return;if(photoUrl)URL.revokeObjectURL(photoUrl);photoUrl=URL.createObjectURL(file);input.value='';go('photo')}
+async function upload(input){
+const file=input.files?.[0];input.value='';if(!file||aiBusy)return;
+if(!['image/jpeg','image/png','image/webp'].includes(file.type)){aiError='Выбери JPEG, PNG или WebP. Фото HEIC сначала сохрани как JPEG.';go('photo');return;}
+if(file.size>15*1024*1024){aiError='Исходное фото слишком большое: максимум 15 МБ.';go('photo');return;}
+aiBusy=true;aiError='';go('photo');let temp;
+try{
+ temp=URL.createObjectURL(file);const img=new Image();img.src=temp;await img.decode();
+ if(!img.naturalWidth||!img.naturalHeight||img.naturalWidth*img.naturalHeight>60000000)throw new Error('Фото слишком большое по разрешению.');
+ const scale=Math.min(1,1280/Math.max(img.naturalWidth,img.naturalHeight)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+ const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
+ const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.85));if(!blob||blob.size>2*1024*1024)throw new Error('Не удалось уменьшить фото до 2 МБ. Выбери другое.');
+ if(photoUrl)URL.revokeObjectURL(photoUrl);picture=blob;photoUrl=URL.createObjectURL(blob);photoVersion++;aiResult=null;
+}catch(e){aiError=e.message||'Не удалось открыть фотографию.';}finally{if(temp)URL.revokeObjectURL(temp);aiBusy=false;render();}
+}
 $('#cal13-gallery').addEventListener('change',e=>upload(e.target));
 $('#cal13-camera').addEventListener('change',e=>upload(e.target));
 render();
